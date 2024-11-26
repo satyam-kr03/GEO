@@ -4,4 +4,8 @@ Demo implementation of the GEO strategy: A framework to solve optimization probl
 
 Based on the paper titled [*GEO: Enhancing Combinatorial Optimization with Classical and Quantum Generative Models* ](https://arxiv.org/abs/2101.06250) by Javier Alcazar, Mohammad Ghazi Vakili, Can B. Kalayci, and Alejandro Perdomo-Ortiz (2022).
 
+![image](https://github.com/user-attachments/assets/8b645b34-8dab-4e6c-b946-0a89b449b847)
+
+
+
 This work is part of the Seminar on Advanced Topics in Quantum Computing (WS 2024/25) at the Technical University of Munich.
