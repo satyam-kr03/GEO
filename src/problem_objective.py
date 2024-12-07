@@ -1,40 +1,43 @@
-import pandas as pd
 import torch
+import pandas as pd
 import numpy as np
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 prices = pd.read_csv("twelve_years.csv", index_col=0)
 
-prices = prices.iloc[:, :5]
-assets = list(prices.columns)
+prices = prices.iloc[:, :5] # use only the first 5 assets
+
+assets = list(prices.columns) # the assets in the portfolio
 num_assets = len(assets)
 
-mu = torch.Tensor(np.array(prices.pct_change().mean() * 252)).to(device)
-sigma = torch.Tensor(np.array(prices.pct_change().cov() * 252)).to(device)
+mean = torch.Tensor(np.array(prices.pct_change().mean() * 252)).to(device)
+covariance = torch.Tensor(np.array(prices.pct_change().cov() * 252)).to(device)
+# pct_change() computes the percentage change between the current and a prior element
 
+def objective(portfolio_allocations):
+    lambda_ = 0.5 # return-risk trade-off parameter
 
-def objective(x):
-    lam = 0.5
+    total_objective = []
+    for portfolio in portfolio_allocations:
+        global mean, covariance # the mean and covariance matrix of the returns of the assets
 
-    tot_obj = []
-    for p in x:
-        global mu, sigma
         risk = 0
-        for s1 in range(x.shape[1]):
-            for s2 in range(x.shape[1]):
-                risk = risk + sigma[s1][s2] * p[s1] * p[s2]
+        for i in range(portfolio_allocations.shape[1]): # for each asset
+            for j in range(portfolio_allocations.shape[1]): # for each asset
+                risk += covariance[i][j] * portfolio[i] * portfolio[j] # calculate the risk of the portfolio
 
         returns = 0
-        for s in range(x.shape[1]):
-            returns = returns + mu[s] * p[s]
+        for i in range(portfolio_allocations.shape[1]): # for each asset
+            returns = returns + mean[i] * portfolio[i] # calculate the return of the portfolio
 
-        sum_ = 0
-        for e in range(x.shape[1]):
-            sum_ += p[e]
+        sum = 0 # TODO: implement the constraint that the sum of the portfolio allocations should be 1
+        for i in range(portfolio_allocations.shape[1]): 
+            sum += portfolio[i]
 
-        obj = lam * risk - (1 - lam) * returns
+        objective_value = lambda_ * risk - (1 - lambda_) * returns
 
-        tot_obj.append(obj)
+        total_objective.append(objective_value)
 
-    return torch.Tensor(tot_obj).to(device)
+    return torch.Tensor(total_objective).to(device)
+

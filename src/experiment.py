@@ -12,9 +12,10 @@ from models import Generator, Discriminator
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+# intital seed dataset
 initial_seed = torch.from_numpy(np.array(pd.read_csv("initial_seed.csv", index_col=0))).to(device)
 
-sample_dim = 5
+sample_dim = 5 # number of assets
 batch_size = 256
 num_epochs = 200
 learning_rate = 0.0002
@@ -22,16 +23,17 @@ learning_rate = 0.0002
 generator = Generator(sample_dim, sample_dim).to(device)
 discriminator = Discriminator(sample_dim).to(device)
 
-criterion = nn.BCELoss()
-g_optimizer = optim.Adam(generator.parameters(), lr=learning_rate)
-d_optimizer = optim.Adam(discriminator.parameters(), lr=learning_rate)
+criterion = nn.BCELoss() # Binary Cross Entropy Loss
+generator_optimizer = optim.Adam(generator.parameters(), lr=learning_rate)
+discriminator_optimizer = optim.Adam(discriminator.parameters(), lr=learning_rate)
 
 distri = multiDistribution(initial_seed)
 
-pbar = tqdm(range(num_epochs))
+pbar = tqdm(range(num_epochs)) # progress bar for visualization 
 new_gens = np.array([])
 initial_seed_obj = objective(initial_seed)
 ground_val = initial_seed_obj.min().item()
+
 for epoch in pbar:
     if new_gens.any():
         initial_seed = torch.cat((initial_seed, new_gens),dim=0)
@@ -62,7 +64,7 @@ for epoch in pbar:
 
         d_loss = d_real_loss + d_fake_loss
         d_loss.backward()
-        d_optimizer.step()
+        discriminator_optimizer.step()
 
         # Train the Generator
         generator.zero_grad()
@@ -72,7 +74,7 @@ for epoch in pbar:
         g_loss = criterion(g_fake_output, real_labels)
 
         g_loss.backward()
-        g_optimizer.step()
+        generator_optimizer.step()
     new_gens = generator(generate_random_noise(1000, 5)).detach()
     new_gens /= new_gens.sum(dim=1, keepdim=True)
     pbar.set_description(f"{round(g_loss.item(),2)} :: {round(d_loss.item(),2)} :: {ground_val} :: {mean.item(), std.item()}")
