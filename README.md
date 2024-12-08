@@ -42,6 +42,6 @@ The generic GEO algorithm broadly consists of three steps:
 
 Fig. 1: Portfolio optimization using a classical GAN over 200 iterations of the GEO algorithm.
 
-![alt text](image.png)
+![alt text](/media/result_qGAN.png)
 
 Fig. 2: Portfolio optimization using a quantum GAN over 40 iterations.
